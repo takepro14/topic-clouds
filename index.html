@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cloudy Words (Slower & Sky Blue)</title>
+    <style>
+      /* 全画面を使うためのリセット、基本設定 */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: sans-serif;
+        background: #87ceeb;
+        /* スカイブルー */
+      }
+
+      /* 単語を配置するための親要素 */
+      .word-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* 雲っぽい見た目の要素（単語表示用） */
+      .cloud-shape {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        /* サイズを小さく */
+        height: 50px;
+        /* サイズを小さく */
+        background: #fff;
+        color: #333;
+        font-weight: bold;
+        font-size: 12px;
+        /* 文字サイズを小さく */
+        cursor: pointer;
+        pointer-events: auto;
+        will-change: transform;
+        user-select: none;
+        transition: transform 0.2s ease;
+
+        border-radius: 40px;
+        box-shadow:
+          20px 8px 0 0 #fff,
+          40px 0px 0 0 #fff,
+          30px -8px 0 0 #fff;
+      }
+
+      /* ホバー時に少し拡大 */
+      .cloud-shape:hover {
+        transform: scale(1.05);
+      }
+
+      /*
+     * 斜めや上下左右に行ったり来たりするアニメーション
+     * 動きをさらにゆったりにするため、durationを長くしています。
+     */
+      @keyframes randomFloat {
+        0% {
+          transform: translate(0, 0);
+        }
+
+        20% {
+          transform: translate(30px, -40px);
+        }
+
+        40% {
+          transform: translate(-40px, 30px);
+        }
+
+        60% {
+          transform: translate(40px, 20px);
+        }
+
+        80% {
+          transform: translate(-30px, -20px);
+        }
+
+        100% {
+          transform: translate(0, 0);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="word-container" id="wordContainer"></div>
+
+    <script>
+      // 外部JSONファイルを読み込む関数
+      async function fetchTopics() {
+        const response = await fetch('http://localhost:8000/topics.json'); // JSONファイルのパス
+        if (!response.ok) {
+          console.error('Failed to fetch topics.json');
+          return [];
+        }
+        return response.json();
+      }
+
+      /**
+       * ランダムな範囲の数値を返す関数
+       * @param {number} min - 最小値
+       * @param {number} max - 最大値
+       * @returns {number} min から max の範囲内のランダムな値
+       */
+      function randomRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      /**
+       * 単語の要素を生成し、画面に追加する関数
+       * @param {string} text - 単語のテキスト
+       */
+      function createCloud(text) {
+        // 雲の要素を作成
+        const cloud = document.createElement('div');
+        cloud.classList.add('cloud-shape');
+
+        // ランダムに配置
+        const x = randomRange(0, window.innerWidth * 0.8);
+        const y = randomRange(0, window.innerHeight * 0.8);
+        cloud.style.left = `${x}px`;
+        cloud.style.top = `${y}px`;
+
+        // テキストを設定
+        cloud.textContent = text;
+
+        // クリック時に Google 検索を開く
+        cloud.onclick = () => {
+          const query = encodeURIComponent(text);
+          window.open(`https://www.google.com/search?q=${query}`, '_blank');
+        };
+
+        // 親要素に追加
+        document.getElementById('wordContainer').appendChild(cloud);
+
+        // アニメーションをランダムに設定
+        const randomDuration = `${randomRange(6, 10).toFixed(2)}s`; // スローな動き
+        const randomDelay = `${randomRange(0, 2).toFixed(2)}s`;
+
+        cloud.style.animation = `
+        randomFloat ${randomDuration} ease-in-out infinite alternate
+      `;
+        cloud.style.animationDelay = randomDelay;
+      }
+
+      // 外部 JSON からデータを取得して雲を生成
+      fetchTopics().then((data) => {
+        data.forEach((word) => {
+          createCloud(word);
+        });
+      });
+    </script>
+  </body>
+</html>
