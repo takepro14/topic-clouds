@@ -96,7 +96,7 @@
     <script>
       // 外部JSONファイルを読み込む関数
       async function fetchTopics() {
-        const response = await fetch('http://localhost:8000/topics.json'); // JSONファイルのパス
+        const response = await fetch('http://localhost:8000/topic-clouds.json'); // JSONファイルのパス
         if (!response.ok) {
           console.error('Failed to fetch topics.json');
           return [];
@@ -116,9 +116,10 @@
 
       /**
        * 単語の要素を生成し、画面に追加する関数
+       * @param {number} id - ChatGPTプロジェクトのID 
        * @param {string} text - 単語のテキスト
        */
-      function createCloud(text) {
+      function createCloud(id, text) {
         // 雲の要素を作成
         const cloud = document.createElement('div');
         cloud.classList.add('cloud-shape');
@@ -132,10 +133,10 @@
         // テキストを設定
         cloud.textContent = text;
 
-        // クリック時に Google 検索を開く
+        // クリック時に ChatGPTプロジェクト を開く
         cloud.onclick = () => {
           const query = encodeURIComponent(text);
-          window.open(`https://www.google.com/search?q=${query}`, '_blank');
+          window.open(`https://chatgpt.com/g/${id}/project?prompt=${query}`, '_blank');
         };
 
         // 親要素に追加
@@ -153,8 +154,8 @@
 
       // 外部 JSON からデータを取得して雲を生成
       fetchTopics().then((data) => {
-        data.forEach((word) => {
-          createCloud(word);
+        data.topics.forEach((word) => {
+          createCloud(data.gpt_project_id, word);
         });
       });
     </script>
